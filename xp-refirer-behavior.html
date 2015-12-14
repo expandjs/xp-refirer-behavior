@@ -7,17 +7,19 @@ The complete set of contributors may be found at https://expandjs.github.io/CONT
 -->
 
 <!--
-This behavior is used to add refire capabilities on the context element.
+A behavior used to add event refiring capabilities on a custom element.
 
 @behavior xp-refirer-behavior
-@description A behavior used to add refire capabilities on the context element
-@keywords web app, html5, expandjs, web-components
+@description A behavior used to add event refiring capabilities on a custom element
+@keywords expandjs, web app, custom elements, web-components
 @group behaviors
+@hot
+
 @homepage http://expandjs.com/elements/xp-refirer-behavior
 @repository https://github.com/ExpandJS/xp-refirer-behavior
 
-@dependency polymer Polymer/polymer#^1.1.0
-@dependency expandjs ExpandJS/expandjs#0.9.11
+@dependency polymer Polymer/polymer#^1.2.0
+@dependency expandjs ExpandJS/expandjs#0.10.0
 -->
 
 <link rel="import" href="../polymer/polymer.html">
@@ -25,6 +27,67 @@ This behavior is used to add refire capabilities on the context element.
 
 <script>
     Polymer.XPRefirerBehavior = {
+
+        /**
+         * Notifies everyone in array.
+         *
+         * @method notifyAll
+         * @param {string} pathAll
+         * @param {string} path
+         * @param {*} value
+         */
+        notifyAll: function (pathAll, path, value) {
+
+            // Asserting
+            XP.assertArgument(XP.isString(pathAll, true), 1, 'string');
+            XP.assertArgument(XP.isString(path, true), 2, 'string');
+            XP.assertOption(XP.isArray(this.get(pathAll)), pathAll, 'Array');
+
+            // Vars
+            var self     = this,
+                elements = self.get(pathAll);
+
+            // Notifying
+            elements.forEach(function (element) { element.notifyPath(path, value); });
+        },
+
+        /**
+         * Notifies a change event.
+         *
+         * @method notifyChange
+         * @param {Event} event
+         */
+        notifyChange: function (event) {
+
+            // Asserting
+            XP.assertArgument(XP.isEvent(event), 1, 'Event');
+
+            // Notifying
+            this.notifyPath(event.detail.path || event.type.replace(/-changed$/, ''), event.detail.value);
+        },
+
+        /**
+         * Notifies everyone besides itself in array.
+         *
+         * @method notifyOthers
+         * @param {string} pathOthers
+         * @param {string} path
+         * @param {*} value
+         */
+        notifyOthers: function (pathOthers, path, value) {
+
+            // Asserting
+            XP.assertArgument(XP.isString(pathOthers, true), 1, 'string');
+            XP.assertArgument(XP.isString(path, true), 2, 'string');
+            XP.assertOption(XP.isArray(this.get(pathOthers)), pathOthers, 'Array');
+
+            // Vars
+            var self     = this,
+                elements = self.get(pathOthers);
+
+            // Notifying
+            elements.forEach(function (element) { return element !== self ? element.notifyPath(path, value) : undefined; });
+        },
 
         /**
          * Refires an event.
@@ -36,9 +99,6 @@ This behavior is used to add refire capabilities on the context element.
          * @returns {Event}
          */
         refire: function (event, type, detail) {
-
-            // Preparing
-            if (XP.isObject(type)) { detail = type; type = null; }
 
             // Asserting
             XP.assertArgument(XP.isEvent(event), 1, 'Event');
