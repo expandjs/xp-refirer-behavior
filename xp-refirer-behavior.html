@@ -62,8 +62,14 @@ A behavior used to add event refiring capabilities on a custom element.
             // Asserting
             XP.assertArgument(XP.isEvent(event), 1, 'Event');
 
+            // Vars
+            var self  = this,
+                path  = event.detail.path,
+                type  = event.detail.type,
+                value = event.detail.value;
+
             // Notifying
-            this.notifyPath(event.detail.path || event.type.replace(/-changed$/, ''), event.detail.value);
+            self.notifyPath(path ? path.replace(/\.#/g, '.', '.') : type.replace(/-changed$/, ''), value);
         },
 
         /**
